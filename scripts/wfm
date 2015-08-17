@@ -1,0 +1,12 @@
+#!/usr/bin/env python
+
+import wfm
+
+if __name__ == '__main__':
+    date = wfm.get_date()
+    job = wfm.get_job()
+    task = wfm.get_task(job)
+    minutes = wfm.input_valid('\nhow long did you spend ([hh:]mm): ',
+                              wfm.strpmins)
+    description = wfm.get_description()
+    wfm.submit_time(job, task, date, minutes, description)
