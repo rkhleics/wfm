@@ -70,7 +70,13 @@ class Client(object):
 
 if __name__ == '__main__':
     client = Client()
-    jobs = client.get_my_jobs()
+    jobs = sorted(
+        client.get_my_jobs(),
+        key=lambda j: (
+            j.find('Client').find('Name').text.strip(),
+            j.find('Name').text.strip(),
+        )
+    )
 
     for i, job in enumerate(jobs):
         print('{index}: {client} | {job}'.format(
