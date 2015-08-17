@@ -1,5 +1,6 @@
 from __future__ import print_function, unicode_literals, division
 
+from collections import defaultdict
 import datetime
 import os
 from sys import exit
@@ -65,6 +66,14 @@ def strfmins(minutes):
     return '{}:{:02}'.format(hours, remainder)
 
 
+def strpmins(user_string):
+    if ':' not in user_string:
+        user_string = '0:{}'.format(user_string)
+
+    hours, minutes = (int(i) for i in user_string.split(':', 1))
+    return minutes + hours * 60
+
+
 class WFMError(Exception):
     pass
 
@@ -76,13 +85,15 @@ class Client(object):
     def __init__(self):
         self.my_id = self._get_my_id()
 
-    def request(self, method, path, **extra_params):
+    def request(self, method, path, data=None, **extra_params):
         params = {
             'apiKey': API_KEY,
             'accountKey': ACCOUNT_KEY,
         }
         params.update(extra_params)
-        resp = requests.request(method, self.base.format(path), params=params)
+        resp = requests.request(
+            method, self.base.format(path), params=params, data=data,
+        )
 
         if resp.status_code != 200:
             raise WFMError('{}\n\nnon-200 response: {}'.format(
@@ -133,56 +144,28 @@ class Client(object):
         ]
 
 
-if __name__ == '__main__':
-    client = Client()
+client = Client()
 
-    jobs = sorted(
-        client.get_my_jobs(),
-        key=lambda j: (
-            j.find('Client').find('Name').text.strip(),
-            j.find('Name').text.strip(),
-        )
-    )
 
-    for i, job in enumerate(jobs):
-        print('{index}: {job} | {client}'.format(
-            index=colors.bold('{:3}'.format(i+1)),
-            client=colors.cyan(job.find('Client').find('Name').text.strip()),
-            job=colors.magenta(job.find('Name').text.strip()),
-        ))
-
-    job = input_valid(
-        '\npick a job (1-{}): '.format(len(jobs)),
-        lambda i: jobs[int(i)-1],
-    )
-
-    tasks = client.get_tasks_for_job(job.find('ID').text)
-    if len(tasks) == 0:
-        print('there are no tasks on that job, sorry :<')
-    elif len(tasks) == 1:
-        task, = tasks
-    else:
-        for i, task in enumerate(tasks):
-            print('{index}: {task}'.format(
-                index=colors.bold('{:3}'.format(i+1)),
-                task=colors.green(task.find('Name').text.strip()),
-            ))
-
-        task = input_valid(
-            '\npick a task (1-{}): '.format(len(tasks)),
-            lambda i: tasks[int(i)-1],
-        )
-
+def get_date():
     times = client.get_my_recent_times()
     today = datetime.date.today()
     calendar = []
+    dates_counter = defaultdict(int)
+
+    for time in times:
+        dates_counter[time.find('Date').text] += (
+            int(time.find('Minutes').text)
+        )
+
+    dates = {
+        parse_date(d).date(): c
+        for d, c in dates_counter.items()
+    }
+
     for days_ago in range(DAY_BUFFER, -1, -1):
         target_date = today - datetime.timedelta(days=days_ago)
-        total_minutes = 0
-        for time in times:
-            if parse_date(time.find('Date').text).date() == target_date:
-                total_minutes += int(time.find('Minutes').text)
-        calendar.append((target_date, total_minutes))
+        calendar.append((target_date, dates.get(target_date, 0)))
 
     print()
 
@@ -193,11 +176,97 @@ if __name__ == '__main__':
         print('{index}: {time} {weekday} {date}'.format(
             index=colors.bold('{:3}'.format(i+1)),
             weekday='-' if weekday else ' ',
-            date=colors.yellow(date.strftime('%a %b %d')),
+            date=bold_if_weekday(colors.yellow(date.strftime('%a %b %d'))),
             time=bold_if_weekday(minute_coloration(strfmins(minutes))),
         ))
 
-    date = input_valid(
+    return input_valid(
         '\npick a day (1-{0}, default {0}): '.format(len(calendar)),
-        lambda i: calendar[(int(i) if i else len(calendar))-1][1],
+        lambda i: calendar[(int(i) if i else len(calendar))-1][0],
     )
+
+
+def get_job():
+    jobs = sorted(
+        client.get_my_jobs(),
+        key=lambda j: (
+            j.find('Client').find('Name').text.strip(),
+            j.find('Name').text.strip(),
+        )
+    )
+
+    print()
+
+    for i, job in enumerate(jobs):
+        print('{index}: {job} | {client}'.format(
+            index=colors.bold('{:3}'.format(i+1)),
+            client=colors.cyan(job.find('Client').find('Name').text.strip()),
+            job=colors.magenta(job.find('Name').text.strip()),
+        ))
+
+    return input_valid(
+        '\npick a job (1-{}): '.format(len(jobs)),
+        lambda i: jobs[int(i)-1],
+    )
+
+
+def get_task(job):
+    tasks = sorted(
+        client.get_tasks_for_job(job.find('ID').text),
+        key=lambda t: t.find('Name').text.strip(),
+    )
+    if len(tasks) == 0:
+        print('there are no tasks on that job, sorry :<')
+        exit(1)
+    elif len(tasks) == 1:
+        task, = tasks
+        return task
+    else:
+        print()
+        for i, task in enumerate(tasks):
+            print('{index}: {task}'.format(
+                index=colors.bold('{:3}'.format(i+1)),
+                task=colors.green(task.find('Name').text.strip()),
+            ))
+
+        return input_valid(
+            '\npick a task (1-{}): '.format(len(tasks)),
+            lambda i: tasks[int(i)-1],
+        )
+
+
+def get_description():
+    description_lines = []
+
+    print('\nwhat were you up to? (end input by hitting return twice):\n')
+
+    while True:
+        line = input()
+        if not line:
+            break
+        description_lines.append(line)
+
+    return '\r\n'.join(description_lines)
+
+
+if __name__ == '__main__':
+    date = get_date()
+    job = get_job()
+    task = get_task(job)
+    minutes = input_valid('\nhow long did you spend ([hh:]mm): ', strpmins)
+    description = get_description()
+
+    entry = etree.Element('Timesheet')
+    for name, value in [
+        ('Job', job.find('ID').text),
+        ('Task', task.find('ID').text),
+        ('Staff', client.my_id),
+        ('Date', strfdate(date)),
+        ('Minutes', '{}'.format(minutes)),
+        ('Note', description),
+    ]:
+        sub = etree.SubElement(entry, name)
+        sub.text = value
+
+    client.request('post', 'time.api/add', data=etree.tostring(entry))
+    print("okay, that's submitted")
