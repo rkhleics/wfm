@@ -9,7 +9,7 @@ setup(
     description=(
         'A command-line interface for adding to your WorkflowMax timesheet.'
     ),
-    url='https://github.com/colons/wfm',
+    url='https://github.com/rkhleics/wfm',
     author='colons',
     author_email='pypi@colons.co',
     version='0.1.1',
