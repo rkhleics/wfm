@@ -1,9 +1,43 @@
 from __future__ import print_function, unicode_literals
 
+import os
+from sys import exit
+
 import colors
 from lxml import etree
 import requests
 from six.moves import input
+import yaml
+
+
+CONFIG_TUTORIAL = """
+The config is a YAML file with values for 'email', 'apiKey', and 'accountKey'.
+
+For example, it might look like this:
+
+email: me@company.tld
+apiKey: 00000000000000000000000000000000
+accountKey: 00000000000000000000000000000000
+
+If you don't have API keys, you'll need to contact WorkflowMax for them; you
+can do that at http://www.workflowmax.com/contact-us
+""".strip()
+
+
+def get_config_yaml():
+    path = os.path.join(os.environ.get('HOME'), '.wfm.yml')
+    if not os.path.isfile(path):
+        print ('Please make a config file at {}\n\n{}'.format(
+            path, CONFIG_TUTORIAL))
+        exit(1)
+    with open(path) as yf:
+        return yaml.load(yf)
+
+
+config_yaml = get_config_yaml()
+EMAIL = config_yaml['email']
+API_KEY = config_yaml['apiKey']
+ACCOUNT_KEY = config_yaml['accountKey']
 
 
 def input_valid(message, validate):
@@ -22,12 +56,12 @@ class WFMError(Exception):
 
 class Client(object):
     base = 'https://api.workflowmax.com/{}'
-    email = '[redacted]'
+    email = EMAIL
 
     def request(self, method, path, **extra_params):
         params = {
-            'apiKey': '[redacted]',
-            'accountKey': '[redacted]',
+            'apiKey': API_KEY,
+            'accountKey': ACCOUNT_KEY,
         }
         params.update(extra_params)
         resp = requests.request(method, self.base.format(path), params=params)
