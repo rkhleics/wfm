@@ -9,7 +9,7 @@ import xml.etree.ElementTree as etree
 import colors
 from dateutil.parser import parse as parse_date
 import requests
-from six.moves import input
+from six import moves
 import yaml
 
 
@@ -51,7 +51,7 @@ def input_valid(message, validate):
     result = None
     while result is None:
         try:
-            return validate(input(message))
+            return validate(moves.input(message))
         except Exception as e:
             print(e)
             print('try again')
@@ -260,7 +260,7 @@ def get_description():
     print('\nwhat were you up to? (end input by submitting an empty line):\n')
 
     while True:
-        line = input()
+        line = moves.input()
         if not line:
             break
         description_lines.append(line)
