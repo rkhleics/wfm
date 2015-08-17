@@ -20,7 +20,6 @@ setup(
     install_requires=[
         'ansicolors',
         'pyyaml',
-        'python-dateutil',
         'requests',
         'six',
     ],

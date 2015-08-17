@@ -1,19 +1,16 @@
 from __future__ import print_function, unicode_literals, division
 
-from collections import defaultdict
 import datetime
 import os
 from sys import exit
 import xml.etree.ElementTree as etree
 
 import colors
-from dateutil.parser import parse as parse_date
 import requests
 from six import moves
 import yaml
 
 
-DAY_BUFFER = 14
 WFM_DATE_FORMAT = '%Y%m%d'
 SHORT_DATE = '%a %b %d'
 
@@ -133,13 +130,11 @@ class Client(object):
             'get', 'job.api/get/{}'.format(job_id)
         ).find('Job').find('Tasks')
 
-    def get_my_recent_times(self):
+    def get_my_times_for_date(self, date):
         return [
             t for t in client.request('get', 'time.api/list', **{
-                'from': strfdate(datetime.date.today() -
-                                 datetime.timedelta(days=DAY_BUFFER)),
-                'to': strfdate(datetime.date.today() +
-                               datetime.timedelta(days=1)),
+                'from': strfdate(date),
+                'to': strfdate(date),
             }).find('Times')
             if t.find('Staff').find('ID').text == self.my_id
         ]
@@ -149,60 +144,29 @@ client = Client()
 
 
 def get_date():
-    times = client.get_my_recent_times()
     today = datetime.date.today()
-    calendar = []
-    entries_by_date_text = defaultdict(list)
+    times = client.get_my_times_for_date(today)
+    total_minutes = 0
 
-    for time in times:
-        entries_by_date_text[time.find('Date').text].append(time)
-
-    entries_by_date = {
-        parse_date(k).date(): v for k, v in entries_by_date_text.items()
-    }
-
-    dates = {
-        d: sum([int(time.find('Minutes').text) for time in ts])
-        for d, ts in entries_by_date.items()
-    }
-
-    for days_ago in range(DAY_BUFFER, -1, -1):
-        target_date = today - datetime.timedelta(days=days_ago)
-        calendar.append((target_date, dates.get(target_date, 0)))
-
-    print()
-
-    for i, (date, minutes) in enumerate(calendar):
-        weekday = date.weekday() not in (5, 6)
-        bold_if_weekday = colors.bold if weekday else lambda s: s
-        minute_coloration = colors.green if minutes else colors.red
-        print('{index}: {time} {weekday} {date}'.format(
-            index=colors.bold('{:3}'.format(i+1)),
-            weekday='-' if weekday else ' ',
-            date=bold_if_weekday(colors.yellow(date.strftime(SHORT_DATE))),
-            time=bold_if_weekday(minute_coloration(strfmins(minutes))),
+    if times:
+        print('\n  already entered for {}:'.format(
+            today.strftime(SHORT_DATE),
         ))
-
-    date = input_valid(
-        '\npick a day (1-{}, today if blank): '.format(len(calendar)),
-        lambda i: calendar[(int(i) if i else len(calendar))-1][0],
-    )
-
-    existing_entries = entries_by_date.get(date)
-
-    if existing_entries:
-        print('\n times already entered for {}:'.format(
-            date.strftime(SHORT_DATE),
-        ))
-        for entry in existing_entries:
+        for entry in times:
             note = entry.find('Note').text
             note_format = colors.cyan if note else colors.red
-            print(' {time} - {note}'.format(
-                time=colors.bold(strfmins(int(entry.find('Minutes').text))),
+            minutes = int(entry.find('Minutes').text)
+            total_minutes += minutes
+            print('  {time} - {note}'.format(
+                time=colors.bold(strfmins(minutes)),
                 note=note_format(note or '[no description]'),
             ))
 
-    return date
+        print ('\n  {time} - total'.format(
+            time=colors.bold(strfmins(total_minutes)),
+        ))
+
+    return today
 
 
 def get_job():
