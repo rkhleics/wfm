@@ -13,7 +13,7 @@ do this by `emailing them`_. They tend to respond reasonably soon. Once you've
 got your API keys, make a file at ``~/.wfm.yml`` containing something to the
 effect of:
 
-::
+.. code-block:: yaml
    
    email: me@company.tld
    apiKey: 00000000000000000000000000000000
