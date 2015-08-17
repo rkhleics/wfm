@@ -268,12 +268,8 @@ def get_description():
     return '\r\n'.join(description_lines)
 
 
-if __name__ == '__main__':
-    date = get_date()
-    job = get_job()
-    task = get_task(job)
-    minutes = input_valid('\nhow long did you spend ([hh:]mm): ', strpmins)
-    description = get_description()
+def submit_time(job, task, date, minutes, description):
+    print("submitting...")
 
     entry = etree.Element('Timesheet')
     for name, value in [
@@ -288,4 +284,14 @@ if __name__ == '__main__':
         sub.text = value
 
     client.request('post', 'time.api/add', data=etree.tostring(entry))
+
     print("okay, that's submitted")
+
+
+if __name__ == '__main__':
+    date = get_date()
+    job = get_job()
+    task = get_task(job)
+    minutes = input_valid('\nhow long did you spend ([hh:]mm): ', strpmins)
+    description = get_description()
+    submit_time(job, task, date, minutes, description)
