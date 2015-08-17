@@ -14,7 +14,8 @@ import yaml
 
 
 DAY_BUFFER = 14
-DATE_FORMAT = '%Y%m%d'
+WFM_DATE_FORMAT = '%Y%m%d'
+SHORT_DATE = '%a %b %d'
 
 CONFIG_TUTORIAL = """
 The config is a YAML file with values for 'email', 'apiKey', and 'accountKey'.
@@ -57,7 +58,7 @@ def input_valid(message, validate):
 
 
 def strfdate(date):
-    return date.strftime(DATE_FORMAT)
+    return date.strftime(WFM_DATE_FORMAT)
 
 
 def strfmins(minutes):
@@ -151,16 +152,18 @@ def get_date():
     times = client.get_my_recent_times()
     today = datetime.date.today()
     calendar = []
-    dates_counter = defaultdict(int)
+    entries_by_date_text = defaultdict(list)
 
     for time in times:
-        dates_counter[time.find('Date').text] += (
-            int(time.find('Minutes').text)
-        )
+        entries_by_date_text[time.find('Date').text].append(time)
+
+    entries_by_date = {
+        parse_date(k).date(): v for k, v in entries_by_date_text.items()
+    }
 
     dates = {
-        parse_date(d).date(): c
-        for d, c in dates_counter.items()
+        d: sum([int(time.find('Minutes').text) for time in ts])
+        for d, ts in entries_by_date.items()
     }
 
     for days_ago in range(DAY_BUFFER, -1, -1):
@@ -176,14 +179,30 @@ def get_date():
         print('{index}: {time} {weekday} {date}'.format(
             index=colors.bold('{:3}'.format(i+1)),
             weekday='-' if weekday else ' ',
-            date=bold_if_weekday(colors.yellow(date.strftime('%a %b %d'))),
+            date=bold_if_weekday(colors.yellow(date.strftime(SHORT_DATE))),
             time=bold_if_weekday(minute_coloration(strfmins(minutes))),
         ))
 
-    return input_valid(
+    date = input_valid(
         '\npick a day (1-{0}, default {0}): '.format(len(calendar)),
         lambda i: calendar[(int(i) if i else len(calendar))-1][0],
     )
+
+    existing_entries = entries_by_date.get(date)
+
+    if existing_entries:
+        print('\n times already entered for {}:'.format(
+            date.strftime(SHORT_DATE),
+        ))
+        for entry in existing_entries:
+            note = entry.find('Note').text
+            note_format = colors.cyan if note else colors.red
+            print(' {time} - {note}'.format(
+                time=colors.bold(strfmins(int(entry.find('Minutes').text))),
+                note=note_format(note or '[no description]'),
+            ))
+
+    return date
 
 
 def get_job():
@@ -200,7 +219,7 @@ def get_job():
     for i, job in enumerate(jobs):
         print('{index}: {job} | {client}'.format(
             index=colors.bold('{:3}'.format(i+1)),
-            client=colors.cyan(job.find('Client').find('Name').text.strip()),
+            client=colors.blue(job.find('Client').find('Name').text.strip()),
             job=colors.magenta(job.find('Name').text.strip()),
         ))
 
