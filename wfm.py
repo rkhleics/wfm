@@ -184,7 +184,7 @@ def get_date():
         ))
 
     date = input_valid(
-        '\npick a day (1-{0}, default {0}): '.format(len(calendar)),
+        '\npick a day (1-{}, today if blank): '.format(len(calendar)),
         lambda i: calendar[(int(i) if i else len(calendar))-1][0],
     )
 
