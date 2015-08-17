@@ -257,7 +257,7 @@ def get_task(job):
 def get_description():
     description_lines = []
 
-    print('\nwhat were you up to? (end input by hitting return twice):\n')
+    print('\nwhat were you up to? (end input by submitting an empty line):\n')
 
     while True:
         line = input()
