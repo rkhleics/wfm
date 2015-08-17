@@ -4,10 +4,10 @@ from collections import defaultdict
 import datetime
 import os
 from sys import exit
+import xml.etree.ElementTree as etree
 
 import colors
 from dateutil.parser import parse as parse_date
-from lxml import etree
 import requests
 from six.moves import input
 import yaml
