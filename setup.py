@@ -12,7 +12,7 @@ setup(
     url='https://github.com/rkhleics/wfm',
     author='colons',
     author_email='pypi@colons.co',
-    version='0.1.1',
+    version='0.1.2',
     license="BSD",
     platforms=['any'],
     packages=['wfm'],
