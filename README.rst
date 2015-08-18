@@ -23,8 +23,8 @@ as based on email address. Once you have your keys, make a file at
 That should be you all set up. Assuming you've got pip installed (your package
 manager probably has it if you don't, perhaps as ``python-pip``, ``pip`` or
 just as part of ``python``), you can install wfm by running ``pip install
-wfm``. If it's a system Python install, it may be necessary to run ``pip
-install`` as root with ``sudo``.
+wfm``. If it's a system Python install, it may be necessary to install as root
+with ``sudo pip install wfm``.
 
 Once installed, run ``wfm`` and follow the instructions the script gives you.
 
