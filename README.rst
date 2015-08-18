@@ -21,14 +21,11 @@ update as based on email address. Once you have your keys, make a file at
    accountKey: 00000000000000000000000000000000
 
 That should be you all set up. Assuming you've got pip installed (your package
-manager probably has it if you don't, perhaps as ``python-pip``), you should be
-able to run:
+manager probably has it if you don't, perhaps as ``python-pip``, ``pip`` or
+just as part of ``python``), you should be able to run ``pip install wfm``. If
+it's a system Python install, it may be necessary to run `pip install` as root
+with `sudo`.
 
-::
-   
-   $ pip install wfm
-   $ wfm
-
-Then follow the instructions the script gives you.
+Then, just run ``wfm`` and follow the instructions the script gives you.
 
 .. _emailing them: http://www.workflowmax.com/contact-us
