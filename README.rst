@@ -9,9 +9,10 @@ Setup and use
 -------------
 
 You're going to need to get API keys from WorkflowMax. Believe it or not, you
-do this by `emailing them`_. They tend to respond reasonably soon. Once you've
-got your API keys, make a file at ``~/.wfm.yml`` containing something to the
-effect of:
+do this by `emailing them`_. They tend to respond reasonably soon. If you have
+a colleague who already has a set, just use theirs; we decide which user to
+update as based on email address [1]_. Once you have your keys, make a file at
+``~/.wfm.yml`` containing something to the effect of:
 
 .. code-block:: yaml
    
@@ -31,3 +32,7 @@ able to run:
 Then follow the instructions the script gives you.
 
 .. _emailing them: http://www.workflowmax.com/contact-us
+
+.. [1] Yes, you can email WorkflowMax and get API access to your entire company's
+   stuff. If you're uncomfortable about that (and I know I am), talk to them
+   about it.
