@@ -2,12 +2,12 @@ from __future__ import print_function, unicode_literals, division
 
 import datetime
 import os
-from sys import exit
+from sys import exit, stdin
 import xml.etree.ElementTree as etree
 
 import colors
 import requests
-from six import moves
+from six import moves, PY2
 import yaml
 
 
@@ -44,11 +44,20 @@ API_KEY = config_yaml['apiKey']
 ACCOUNT_KEY = config_yaml['accountKey']
 
 
+def decoded_input(*args):
+    result = moves.input(*args)
+
+    if PY2:
+        return result.decode(stdin.encoding)
+    else:
+        return result
+
+
 def input_valid(message, validate):
     result = None
     while result is None:
         try:
-            return validate(moves.input(message))
+            return validate(decoded_input(message))
         except Exception as e:
             print(e)
             print('try again')
@@ -224,12 +233,12 @@ def get_description():
     print('\nwhat were you up to? (end input by submitting an empty line):\n')
 
     while True:
-        line = moves.input()
+        line = decoded_input()
         if not line:
             break
         description_lines.append(line)
 
-    return '\r\n'.join(description_lines)
+    return u'\r\n'.join(description_lines)
 
 
 def submit_time(job, task, date, minutes, description):
