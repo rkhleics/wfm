@@ -191,14 +191,14 @@ def get_job():
 
     for i, job in enumerate(jobs):
         print('{index}: {job} | {client}'.format(
-            index=colors.bold('{:3}'.format(i+1)),
+            index=colors.bold('{:3}'.format(i + 1)),
             client=colors.blue(job.find('Client').find('Name').text.strip()),
             job=colors.magenta(job.find('Name').text.strip()),
         ))
 
     return input_valid(
         '\npick a job (1-{}): '.format(len(jobs)),
-        lambda i: jobs[int(i)-1],
+        lambda i: jobs[int(i) - 1],
     )
 
 
@@ -217,13 +217,13 @@ def get_task(job):
         print()
         for i, task in enumerate(tasks):
             print('{index}: {task}'.format(
-                index=colors.bold('{:3}'.format(i+1)),
+                index=colors.bold('{:3}'.format(i + 1)),
                 task=colors.green(task.find('Name').text.strip()),
             ))
 
         return input_valid(
             '\npick a task (1-{}): '.format(len(tasks)),
-            lambda i: tasks[int(i)-1],
+            lambda i: tasks[int(i) - 1],
         )
 
 
