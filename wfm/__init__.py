@@ -35,7 +35,7 @@ def get_config_yaml():
             path, CONFIG_TUTORIAL))
         exit(1)
     with open(path) as yf:
-        return yaml.load(yf)
+        return yaml.load(yf, Loader=yaml.SafeLoader)
 
 
 config_yaml = get_config_yaml()
